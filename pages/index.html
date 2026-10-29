@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <!-- 모바일에서 화면 크기에 맞게 보이도록 하는 필수 태그 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>서울 버스정류장 대시보드</title>
+  <!-- Flask에서는 static 파일을 url_for로 불러옵니다 -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+</head>
+<body>
+
+  <header class="topbar">
+    <h1>🚌 서울 버스정류장 대시보드</h1>
+    <p>내 위치 주변의 가까운 정류장을 찾아보세요</p>
+  </header>
+
+  <main class="layout">
+
+    <!-- ========== 왼쪽: 검색/필터/결과 ========== -->
+    <aside class="panel">
+
+      <!-- 입력 폼: [계산 실행] 버튼을 누르면 Flask(/search)로 값이 전달됩니다 -->
+      <form id="search-form" class="card" action="{{ url_for('index') }}" method="post">
+        <h2>1. 위치 입력</h2>
+
+        <label for="address">주소</label>
+        <div class="row">
+          <input type="text" id="address" name="address"
+                 placeholder="예) 서울시청" value="{{ form.address }}">
+          <button type="button" id="geo-btn" class="btn btn-sub">📍 내 위치</button>
+        </div>
+
+        <!-- 위도/경도: 내 위치 버튼이나 주소 변환 결과가 여기에 채워집니다 -->
+        <div class="row">
+          <input type="text" id="lat" name="lat" placeholder="위도" value="{{ form.lat }}" readonly>
+          <input type="text" id="lng" name="lng" placeholder="경도" value="{{ form.lng }}" readonly>
+        </div>
+
+        <h2>2. 조건 선택</h2>
+
+        <label for="count">보여줄 정류장 개수</label>
+        <select id="count" name="count">
+          {% for n in [3, 5, 10, 20] %}
+          <option value="{{ n }}" {% if form.count == n %}selected{% endif %}>가까운 {{ n }}개</option>
+          {% endfor %}
+        </select>
+
+        <label>도로 종류 필터</label>
+        <div class="chips">
+          <label class="chip">
+            <input type="checkbox" name="types" value="마을버스"
+                   {% if '마을버스' in form.types %}checked{% endif %}>
+            <span>마을버스</span>
+          </label>
+          <label class="chip">
+            <input type="checkbox" name="types" value="일반도로"
+                   {% if '일반도로' in form.types %}checked{% endif %}>
+            <span>일반도로</span>
+          </label>
+        </div>
+
+        <button type="submit" id="calc-btn" class="btn btn-main">계산 실행</button>
+      </form>
+
+      {% if results is not none %}
+
+      <!-- ========== 정류장 비율 (따로 나오게) ========== -->
+      <section class="card" id="ratio-box">
+        <h2>정류장 비율</h2>
+        {% for name, info in ratio.items() %}
+        <div class="ratio-item">
+          <div class="ratio-label">
+            <span>{{ name }}</span>
+            <strong>{{ info.count }}개 · {{ info.percent }}%</strong>
+          </div>
+          <div class="bar"><div class="bar-fill {{ 'village' if name == '마을버스' else 'road' }}"
+                                style="width: {{ info.percent }}%"></div></div>
+        </div>
+        {% endfor %}
+      </section>
+
+      <!-- ========== 가까운 정류장 리스트 (가까운 순) ========== -->
+      <section class="card" id="result-box">
+        <h2>가까운 정류장 <small>{{ results|length }}개</small></h2>
+        {% if results %}
+        <ol class="result-list">
+          {% for s in results %}
+          <li class="{{ 'nearest' if loop.first }}">
+            <span class="rank">{{ loop.index }}</span>
+            <div class="info">
+              <div class="name">{{ s.name }}</div>
+              <span class="tag {{ 'village' if s.type == '마을버스' else 'road' }}">{{ s.type }}</span>
+            </div>
+            <div class="dist">{{ s.distance_text }}</div>
+          </li>
+          {% endfor %}
+        </ol>
+        {% else %}
+        <p class="empty">조건에 맞는 정류장이 없어요.</p>
+        {% endif %}
+      </section>
+
+      {% endif %}
+    </aside>
+
+    <!-- ========== 오른쪽: 지도 ========== -->
+    <section class="map-area">
+      {% if map_html %}
+        <!-- 팀원 3(MapRenderer)이 만든 지도 HTML이 그대로 들어오는 자리 -->
+        {{ map_html | safe }}
+      {% else %}
+        <div class="map-placeholder">
+          <p>🗺️</p>
+          <p>왼쪽에서 위치를 입력하고<br><strong>[계산 실행]</strong>을 눌러주세요</p>
+        </div>
+      {% endif %}
+    </section>
+
+  </main>
+
+  <script>
+    // [📍 내 위치] 버튼: 브라우저의 위치 정보를 가져와 위도/경도 칸에 넣어줍니다.
+    document.getElementById('geo-btn').addEventListener('click', function () {
+      if (!navigator.geolocation) {
+        alert('이 브라우저는 위치 기능을 지원하지 않아요.');
+        return;
+      }
+      this.textContent = '찾는 중...';
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          document.getElementById('lat').value = pos.coords.latitude.toFixed(6);
+          document.getElementById('lng').value = pos.coords.longitude.toFixed(6);
+          document.getElementById('address').value = '현재 위치';
+          document.getElementById('geo-btn').textContent = '📍 내 위치';
+        },
+        () => {
+          alert('위치를 가져오지 못했어요. 위치 권한을 확인해주세요.');
+          document.getElementById('geo-btn').textContent = '📍 내 위치';
+        }
+      );
+    });
+
+    // 위치가 비어 있으면 계산 실행을 막습니다.
+    document.getElementById('search-form').addEventListener('submit', function (e) {
+      const hasAddr = document.getElementById('address').value.trim() !== '';
+      const hasLatLng = document.getElementById('lat').value !== '';
+      if (!hasAddr && !hasLatLng) {
+        e.preventDefault();
+        alert('주소를 입력하거나 [내 위치]를 눌러주세요.');
+      }
+    });
+  </script>
+</body>
+</html>
