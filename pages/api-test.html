@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BusFinder - Python 외부 API 테스트</title>
+  <link rel="stylesheet" href="https://pyscript.net/releases/2026.7.3/core.css">
+  <style>
+    body { font: 16px/1.6 system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; }
+    .controls { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1rem 0; }
+    input { min-width: 280px; flex: 1; }
+    input, select, button { padding: .6rem; }
+    button { cursor: pointer; }
+    #status { background: #f2f5f9; border-radius: 8px; padding: 1rem; overflow-wrap: anywhere; }
+  </style>
+  <!-- JavaScript SDK는 카카오 서비스 연동용. 실제 앱 로직은 아래 Python에 작성. -->
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=5e59c6b3d5a1480cc9db3a3e8751c3a8&libraries=services"></script>
+  <script type="module" src="https://pyscript.net/releases/2026.7.3/core.js"></script>
+</head>
+<body>
+  <h1>BusFinder - 외부 API 테스트 (Python)</h1>
+  <p>주소 검색, 브라우저 현재 위치, 카카오맵 길찾기를 각각 시험합니다.</p>
+  <div class="controls">
+    <input id="address" placeholder="예: 서울특별시 중구 세종대로 110" aria-label="주소">
+    <button id="search-btn" disabled>주소 → 좌표</button>
+    <button id="location-btn" disabled>내 위치 가져오기</button>
+    <select id="mode" aria-label="이동 수단">
+      <option value="walk">도보</option>
+      <option value="car">자동차</option>
+      <option value="traffic">대중교통</option>
+      <option value="bicycle">자전거</option>
+    </select>
+    <button id="route-btn" disabled>길찾기</button>
+  </div>
+  <p id="status" role="status">PyScript 초기화 중...</p>
+  <p>참고: 지도 마커 표시와 정류장 탐색은 다른 팀원 담당이므로 이 테스트에는 넣지 않았습니다.</p>
+  <script type="py" src="./api_test.py" config="./pyscript.json"></script>
+</body>
+</html>
