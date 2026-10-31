@@ -1,0 +1,6 @@
+packages = ["folium", "matplotlib", "seaborn", "pandas"]
+
+[files]
+"../scr/map.py" = "./map.py"
+"../scr/external_api.py" = "./external_api.py"
+"../data/busStop.csv" = "./busStop.csv"

@@ -9,8 +9,8 @@
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=여기에_카카오_JS_키_입력&libraries=services"></script>
 
     <!-- 2. PyScript 런타임 -->
-    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
-    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.8.2/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2024.8.2/core.js"></script>
 
     <style>
         body { font-family: sans-serif; margin: 20px; background: #f8f9fa; }
@@ -24,6 +24,7 @@
         #graph-container { margin-top: 20px; display: flex; flex-direction: column; gap: 16px; }
     </style>
 </head>
+
 <body>
     <h1>BusFinder - 주변 버스 정류소 탐색 대시보드</h1>
 
@@ -53,6 +54,6 @@
     </div>
 
     <!-- 3. PyScript 메인 엔트리 실행 -->
-    <script type="py" src="./main.py" config="./pyscript.toml"></script>
+    <script type="py" src="../scr/main.py" config="./pyscript.toml"></script>
 </body>
 </html>
