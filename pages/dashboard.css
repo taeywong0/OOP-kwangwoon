@@ -142,3 +142,18 @@ input[readonly] { background: #f9fafb; color: var(--muted); }
   .panel  { overflow: visible; }
   .map-area { height: 380px; order: -1; }  /* 지도를 위로 */
 }
+
+/* ===== PyScript 버전에서 추가된 스타일 ===== */
+.status {
+  background: #f2f5f9; border-radius: 8px; padding: 10px 12px;
+  font-size: 0.85rem; color: var(--muted); overflow-wrap: anywhere;
+}
+.status.error { background: #fef2f2; color: #b91c1c; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.route-link {
+  font-size: 0.75rem; color: var(--main); text-decoration: none;
+  border: 1px solid var(--main); border-radius: 999px; padding: 2px 8px; white-space: nowrap;
+}
+.route-link:hover { background: #eef2ff; }
+.mode-row { margin-top: 4px; }
+#map { width: 100%; height: 100%; }
