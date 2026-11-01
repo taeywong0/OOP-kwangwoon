@@ -9,9 +9,8 @@
   <link rel="stylesheet" href="https://pyscript.net/releases/2026.7.3/core.css">
   <link rel="stylesheet" href="./dashboard.css">
 
- </script>
-    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=5e59c6b3d5a1480cc9db3a3e8751c3a8&libraries=services"></script> 
-<script type="module" src="https://pyscript.net/releases/2026.7.3/core.js"></script>
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=5e59c6b3d5a1480cc9db3a3e8751c3a8&libraries=services"></script> 
+  <script type="module" src="https://pyscript.net/releases/2026.7.3/core.js"></script>
 </head>
 <body>
 
@@ -28,80 +27,44 @@
       <section class="card" id="search-card">
         <h2>1. 위치 입력</h2>
 
-        <label for="address">주소</label>
+        <label for="input-address">주소</label>
         <div class="row">
-          <input type="text" id="address" placeholder="예) 서울특별시 중구 세종대로 110">
-          <button type="button" id="search-btn" class="btn btn-sub" disabled>주소 → 좌표</button>
-        </div>
-        <div class="row">
-          <button type="button" id="location-btn" class="btn btn-sub" disabled>📍 내 위치 가져오기</button>
+          <!-- 파이썬 main.py와 ID 일치화 -->
+          <input type="text" id="input-address" placeholder="예) 서울특별시 중구 세종대로 110">
+          <button type="button" id="btn-search-address" class="btn btn-sub">주소 → 좌표</button>
         </div>
         <div class="row">
-          <input type="text" id="lat" placeholder="위도" readonly>
-          <input type="text" id="lng" placeholder="경도" readonly>
+          <button type="button" id="btn-current-location" class="btn btn-sub">📍 내 위치 가져오기</button>
         </div>
-
-        <h2>2. 조건 선택</h2>
-
-        <label for="count">보여줄 정류장 개수</label>
-        <select id="count">
-          <option value="3">가까운 3개</option>
-          <option value="5" selected>가까운 5개</option>
-          <option value="10">가까운 10개</option>
-          <option value="20">가까운 20개</option>
-        </select>
-
-        <label>도로 종류 필터</label>
-        <div class="chips">
-          <label class="chip">
-            <input type="checkbox" name="types" value="마을버스" checked>
-            <span>마을버스</span>
-          </label>
-          <label class="chip">
-            <input type="checkbox" name="types" value="일반도로" checked>
-            <span>일반도로</span>
-          </label>
-        </div>
-
-        <label for="mode">길찾기 이동 수단</label>
-        <select id="mode">
-          <option value="walk">도보</option>
-          <option value="car">자동차</option>
-          <option value="traffic">대중교통</option>
-          <option value="bicycle">자전거</option>
-        </select>
-
-        <button type="button" id="calc-btn" class="btn btn-main" disabled>계산 실행</button>
       </section>
 
-      <p id="status" class="status" role="status">PyScript 초기화 중...</p>
-
-      <!-- 정류장 비율 (따로 표시): dashboard.py가 채워 넣어요 -->
-      <section class="card" id="ratio-box" hidden>
-        <h2>정류장 비율</h2>
-        <div id="ratio-content"></div>
+      <!-- 가까운 정류장 리스트: main.py가 #station-list를 채워 넣습니다 -->
+      <section class="card" id="result-box">
+        <h2>가까운 정류장 리스트</h2>
+        <ol class="result-list" id="station-list"></ol>
       </section>
 
-      <!-- 가까운 정류장 리스트 (가까운 순): dashboard.py가 채워 넣어요 -->
-      <section class="card" id="result-box" hidden>
-        <h2>가까운 정류장 <small id="result-count"></small></h2>
-        <ol class="result-list" id="result-list"></ol>
+      <!-- 통계 그래프 영역: main.py가 #graph-container에 그래프를 그려줍니다 -->
+      <section class="card" id="graph-box">
+        <h2>정류장 통계 그래프</h2>
+        <div id="graph-container"></div>
       </section>
     </aside>
 
-    <!-- ========== 오른쪽: 지도 (팀원 3의 MapRenderer가 여기에 그려요) ========== -->
+    <!-- ========== 오른쪽: 지도 (main.py가 #map-container에 지도를 그려요) ========== -->
     <section class="map-area">
-      <div id="map">
+      <div id="map-container" style="width: 100%; height: 100%;">
         <div class="map-placeholder">
           <p>🗺️</p>
-          <p>왼쪽에서 위치를 입력하고<br><strong>[계산 실행]</strong>을 눌러주세요</p>
+          <p>왼쪽에서 위치를 입력하거나<br><strong>[내 위치 가져오기]</strong>를 눌러주세요</p>
         </div>
       </div>
     </section>
 
   </main>
 
-  <!-- 화면을 움직이는 파이썬 코드. pyscript.json은 팀 공용 설정을 그대로 씁니다. -->
-  <script type="py" src="./dashboard.py" config="./pyscript.json"></script>
+  <!-- 파이썬 메인 연동 코드 -->
+  <script type="py" src="./main.py" config="./pyscript.json"></script>
 </body>
 </html>
+          
