@@ -46,7 +46,7 @@ class BusStop:
 
 
 class StationDataLoader:
-    def __init__(self, file_name="서울시 버스정류소 위치 정보.csv"):
+    def __init__(self, file_name="busStop.csv"):
         self.file_name = file_name
 
     def load_data(self):

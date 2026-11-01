@@ -15,7 +15,7 @@
 <body>
 
   <header class="topbar">
-    <h1>🚌 서울 버스정류장 대시보드</h1>
+    <h1>서울 버스정류장 대시보드</h1>
     <p>내 위치 주변의 가까운 정류장을 찾아보세요</p>
   </header>
 
@@ -30,11 +30,11 @@
         <label for="input-address">주소</label>
         <div class="row">
           <!-- 파이썬 main.py와 ID 일치화 -->
-          <input type="text" id="input-address" placeholder="예) 서울특별시 중구 세종대로 110">
+          <input type="text" id="input-address" placeholder="예: 서울특별시 중구 세종대로 110">
           <button type="button" id="btn-search-address" class="btn btn-sub">주소 → 좌표</button>
         </div>
         <div class="row">
-          <button type="button" id="btn-current-location" class="btn btn-sub">📍 내 위치 가져오기</button>
+          <button type="button" id="btn-current-location" class="btn btn-sub">내 위치 가져오기</button>
         </div>
       </section>
 
@@ -55,7 +55,7 @@
     <section class="map-area">
       <div id="map-container" style="width: 100%; height: 100%;">
         <div class="map-placeholder">
-          <p>🗺️</p>
+          <p>지도</p>
           <p>왼쪽에서 위치를 입력하거나<br><strong>[내 위치 가져오기]</strong>를 눌러주세요</p>
         </div>
       </div>
@@ -64,7 +64,7 @@
   </main>
 
   <!-- 파이썬 메인 연동 코드 -->
-  <script type="py" src="./main.py" config="./pyscript.json"></script>
+  <script type="py" src="src/main.py" config="./pyscript.json"></script>
 </body>
 </html>
           
