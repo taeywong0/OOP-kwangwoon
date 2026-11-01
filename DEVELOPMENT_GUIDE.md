@@ -10,10 +10,12 @@
 - [ ] 배포
 
 ## 파일 관리 (다음을 기준으로 합니다)
-data - csv
-pages - html, css, js
-scr - py
-test - 테스트 파일 관리
+폴더 | 파일
+---|---
+data | csv
+pages | html, css, js
+scr | py
+test | 테스트 파일 관리
 
 ## 버스 데이터 명세
     class BusStop:
