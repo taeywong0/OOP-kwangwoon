@@ -13,6 +13,7 @@
 data - csv
 pages - html, css, js
 scr - py
+test - 테스트 파일 관리
 
 ## 버스 데이터 명세
     class BusStop:
