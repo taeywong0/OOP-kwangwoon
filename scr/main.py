@@ -3,11 +3,11 @@ import math
 import warnings
 from urllib.parse import quote, parse_qs, urlparse
 
-# 1. 빨간색 UserWarning 경고 박스 출력 원천 차단
+# 빨간색 UserWarning 경고 박스 출력 원천 차단
 warnings.filterwarnings("ignore")
 
 import matplotlib
-# 2. 브라우저 DOM 충돌(parentNode NoneType 에러) 방지용 Agg 백엔드 고정
+# 브라우저 DOM 충돌(parentNode NoneType 에러) 방지용 Agg 백엔드 고정
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
@@ -22,7 +22,7 @@ from map import ShowMap, ShowGraph
 
 
 # ==========================================================
-# 1. 외부 API 연동 클래스 (ExternalLocationAPI)
+# 외부 API 연동 클래스 (ExternalLocationAPI)
 # ==========================================================
 
 class ExternalLocationAPI:
@@ -138,7 +138,7 @@ class ExternalLocationAPI:
 
 
 # ==========================================================
-# 2. 핵심 데이터 및 거리 계산 클래스 (BusStop / StationManager)
+# 핵심 데이터 및 거리 계산 클래스 (BusStop / StationManager)
 # ==========================================================
 
 class BusStop:
@@ -212,7 +212,7 @@ class StationManager:
 
 
 # ==========================================================
-# 3. PyScript DOM 연결 및 이벤트 바인딩
+# PyScript DOM 연결 및 이벤트 바인딩
 # ==========================================================
 
 # plt.show() 호출 시 Agg 백엔드로 그려진 Figure를 #graph-container에 안전하게 삽입
