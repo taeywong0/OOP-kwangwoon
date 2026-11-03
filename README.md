@@ -1,13 +1,13 @@
 # OOP-kwangwoon
 광운대학교 객체지향프로그래밍 팀 프로젝트
-# 🚌 BusFinder
+# BusFinder
 
 > **서울시 버스 정류소 위치 기반 맞춤형 탐색 대시보드**  
 > 사용자의 현재 위치를 기반으로 인접한 버스 정류소를 빠르게 탐색하고, 인터랙티브 지도 및 유형별 분포 통계를 제공하는 객체지향 프로그래밍(OOP) 기반 웹 대시보드입니다.
 
 ---
 
-## 📌 목차
+##  목차
 1. [프로젝트 개요](#1-프로젝트-개요)
 2. [실행 및 배포 방법 (GitHub Pages)](#2-실행-및-배포-방법-github-pages)
 3. [사용 데이터](#3-사용-데이터)
@@ -34,14 +34,14 @@
 
 본 프로젝트는 PyScript 런타임을 통해 브라우저 내부에서 파이썬 코드가 실행되므로, 로컬 서버 설치나 종속성 빌드 없이 **GitHub Pages 웹 링크 접속**만으로 실행됩니다.
 
-### 🌐 온라인 접속 방법
+### 온라인 접속 방법
 1. 배포된 **GitHub Pages 배포 링크**에 웹 브라우저(Chrome, Edge, Safari 등)로 접속합니다.
    - `https://<GitHub-Username>.github.io/<Repository-Name>/`
 2. 웹 브라우저의 **위치 정보 접근 권한(GPS)** 허용 알림 창이 나타나면 **'허용'**을 선택합니다.
    *(권한이 차단된 경우, 기본 위치 또는 화면 내 위치 검색 기능을 통해 기준점을 지정할 수 있습니다.)*
 3. PyScript 런타임 초기화 및 정류소 데이터 로드가 완료되면 대시보드 화면이 자동으로 표시됩니다.
 
-### ⚙️ GitHub Pages 배포 설정 (저장소 관리자용)
+### GitHub Pages 배포 설정 (저장소 관리자용)
 저장소 코드를 GitHub Pages로 서비스하기 위한 단계는 다음과 같습니다:
 1. GitHub 저장소 상단 메뉴의 **Settings**로 이동합니다.
 2. 좌측 네비게이션 바에서 **Pages** 탭을 선택합니다.
@@ -105,7 +105,7 @@ CSV 데이터 로드부터 객체 인스턴스화, 하버사인 거리 계산, �
 ```mermaid
 flowchart TD
     %% 노드 정의
-    CSV[("📄 CSV 파일<br/>(서울시 버스 정류소 데이터)")]
+    CSV[(" CSV 파일<br/>(서울시 버스 정류소 데이터)")]
     
     subgraph StationManager["StationManager (정류소 관리자)"]
         direction TB
@@ -119,10 +119,10 @@ flowchart TD
         BS_Attr["- id: 정류소 고유 ID<br/>- name: 정류소 명칭<br/>- latitude / longitude: 위경도<br/>- node: 교통망 노드 ID<br/>- type: 정류소 유형"]
     end
 
-    subgraph Dashboard["🖥️ 웹 대시보드 (PyScript / HTML DOM)"]
-        UI_Map["🗺️ 인터랙티브 지도 마커"]
-        UI_List["📋 최근접 정류소 목록 카드"]
-        UI_Chart["📊 정류소 유형별 분포 원그래프"]
+    subgraph Dashboard[" 웹 대시보드 (PyScript / HTML DOM)"]
+        UI_Map[" 인터랙티브 지도 마커"]
+        UI_List[" 최근접 정류소 목록 카드"]
+        UI_Chart[" 정류소 유형별 분포 원그래프"]
     end
 
     %% 연결 관계
