@@ -3,8 +3,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-# 한글 깨짐 방지 설정 (Windows 환경 기준)
-plt.rcParams['font.family'] = 'Malgun Gothic'
+# 한글 깨짐 방지 설정 (Windows / macOS / Linux 순서로 설치된 폰트를 자동 선택)
+plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['font.sans-serif'] = [
+    'Malgun Gothic', 'AppleGothic', 'NanumGothic', 'Noto Sans CJK KR', 'DejaVu Sans'
+]
 plt.rcParams['axes.unicode_minus'] = False
 
 
@@ -27,7 +30,8 @@ class ShowMap:
 
     # 가까운 정류장 지도 생성 (현제 위치 기준 지도 제공 / 가까운 10개의 정류장만 표시)
     def show_nearest_station(self, stations, latitude, longitude):
-        m = folium.Map(location=[latitude, longitude], zoom_start=12)
+        # 가까운 10개 정류장은 수백 m 안에 모여 있으므로 확대해서 표시
+        m = folium.Map(location=[latitude, longitude], zoom_start=16)
 
         # 현재 위치 마커
         folium.Marker(
@@ -43,7 +47,7 @@ class ShowMap:
         for station, distance in result:
             folium.Marker(
                 location=[station.latitude, station.longitude],
-                popup=f'{station.name} (거리: {distance:.2f} )',
+                popup=f'{station.name} (거리: {distance * 1000:.0f}m)',
                 icon=folium.Icon(color='orange')
             ).add_to(m)
 
@@ -58,7 +62,7 @@ class ShowGraph:
         data = []
         for station, distance in result:
             data.append({
-                'id': station.id,
+                'id': station.station_no,
                 'name': station.name,
                 'latitude': station.latitude,
                 'longitude': station.longitude,
@@ -72,10 +76,15 @@ class ShowGraph:
     def show_distance_by_station(self, result):
         df = self._to_dataframe(result)
         
+        # 같은 이름의 정류장(상·하행 등)이 한 막대로 합쳐지지 않도록
+        # 이름 대신 순번 위치에 그리고, 라벨에는 정류소번호를 함께 표시
+        labels = [f"{n}\n({i})" for n, i in zip(df['name'], df['id'])]
+
         plt.figure(figsize=(12, 6))
-        plt.bar(df['name'], df['distance'], color='skyblue')
-        plt.xlabel('정류장 이름')
-        plt.ylabel('거리')
+        plt.bar(range(len(df)), df['distance'] * 1000, color='skyblue')
+        plt.xticks(range(len(df)), labels)
+        plt.xlabel('정류장 (정류소번호)')
+        plt.ylabel('거리 (m)')
         plt.title('가까운 정류장별 거리 비교')
         plt.xticks(rotation=45, ha='right')
         plt.tight_layout()
