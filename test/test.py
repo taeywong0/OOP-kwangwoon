@@ -1,8 +1,13 @@
 """BusFinder 통합 테스트 (scr/*.py, pages/external_api.py)
 
 실행 방법 (어느 위치에서 실행해도 됩니다):
-    python test/test.py
+    python test/test.py            # 전체 테스트 (그래프 창 없음)
+    python test/test.py --show     # 테스트 후 통합 데모 실행: 지도는 브라우저로, 그래프는 창으로 표시
     python -m unittest test/test.py -v
+
+통합 테스트(IntegrationTest)는 CSV 로드 → StationManager 검색 → ShowMap/ShowGraph 까지
+모듈들이 실제로 연동되는지 확인하고, 결과물을 test/output/ 에 저장합니다.
+(nearest_map.html, graph_distance.png, graph_node.png, graph_type.png)
 
 - 외부 라이브러리(folium, matplotlib, seaborn, pandas)가 없으면 해당 테스트만 건너뜁니다.
 - external_api.py는 브라우저(PyScript) 전용이라 pyscript / 카카오 SDK를 가짜(mock)로 대체합니다.
@@ -30,8 +35,14 @@ for path in (SCR_DIR, PAGES_DIR):
     if path not in sys.path:
         sys.path.insert(0, path)
 
-# 그래프를 화면에 띄우지 않고 테스트 (matplotlib import 전에 설정)
-os.environ.setdefault("MPLBACKEND", "Agg")
+# --show 가 없으면 그래프를 화면에 띄우지 않고 테스트 (matplotlib import 전에 설정)
+SHOW = "--show" in sys.argv
+if SHOW:
+    sys.argv.remove("--show")  # unittest 가 모르는 옵션이라 제거
+else:
+    os.environ.setdefault("MPLBACKEND", "Agg")
+
+OUTPUT_DIR = os.path.join(ROOT, "test", "output")
 
 from stationmanager import (  # noqa: E402
     BusStop,
@@ -289,6 +300,84 @@ class MapTest(unittest.TestCase):
 
 
 # ===========================================================================
+# 5-2. 통합 테스트: CSV -> StationManager -> ShowMap / ShowGraph 연동
+# ===========================================================================
+@unittest.skipUnless(HAS_MAP_LIBS and HAS_CSV, "라이브러리 또는 data/busStop.csv 없음")
+class IntegrationTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import map as map_module
+
+        cls.map_module = map_module
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+        # 1) 데이터 로드 -> 2) 거리 계산기 주입 -> 3) 관리자 생성 (실제 앱과 같은 순서)
+        cls.stations = StationDataLoader(CSV_PATH).load_data()
+        cls.manager = StationManager(cls.stations, HaversineCalculator())
+        cls.nearest = cls.manager.find_nearest_stations(KW_LAT, KW_LON, 10)
+
+    def test_pipeline_result_shape(self):
+        self.assertEqual(len(self.nearest), 10)
+        for station, distance in self.nearest:
+            self.assertIsInstance(station, BusStop)
+            self.assertGreaterEqual(distance, 0)
+
+    def test_map_saved_and_contains_nearest_stations(self):
+        m = self.map_module.ShowMap().show_nearest_station(self.manager, KW_LAT, KW_LON)
+        path = os.path.join(OUTPUT_DIR, "nearest_map.html")
+        m.save(path)
+
+        self.assertTrue(os.path.getsize(path) > 0)
+        with open(path, encoding="utf-8") as f:
+            html = f.read()
+        self.assertIn("현재 위치", html)
+        # 검색된 정류장 이름이 모두 지도(팝업)에 들어갔는지 확인
+        for station, _ in self.nearest:
+            self.assertIn(station.name, html)
+
+    def test_graphs_saved_as_png(self):
+        import matplotlib.pyplot as plt
+
+        names = iter(["graph_distance.png", "graph_node.png", "graph_type.png"])
+
+        def save_instead_of_show():
+            plt.savefig(os.path.join(OUTPUT_DIR, next(names)))
+            plt.close()
+
+        with mock.patch.object(plt, "show", side_effect=save_instead_of_show):
+            self.map_module.ShowGraph().show_nearest_station_graph(self.manager, KW_LAT, KW_LON)
+
+        for name in ("graph_distance.png", "graph_node.png", "graph_type.png"):
+            path = os.path.join(OUTPUT_DIR, name)
+            self.assertTrue(os.path.exists(path), name)
+            self.assertGreater(os.path.getsize(path), 1000, name)
+
+    def test_swapped_coordinates_would_be_detected(self):
+        """위도/경도가 뒤바뀌면 가장 가까운 정류장이 수십 km 밖으로 나온다 (연동 오류 감지용)."""
+        swapped = self.manager.find_nearest_stations(KW_LON, KW_LAT, 1)
+        self.assertGreater(swapped[0][1], 100)
+
+
+def run_demo():
+    """--show: 실제 화면으로 결과를 확인하는 데모 (지도는 브라우저, 그래프는 창)."""
+    import webbrowser
+
+    import map as map_module
+
+    stations = StationDataLoader(CSV_PATH).load_data()
+    manager = StationManager(stations, HaversineCalculator())
+
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    path = os.path.join(OUTPUT_DIR, "nearest_map.html")
+    map_module.ShowMap().show_nearest_station(manager, KW_LAT, KW_LON).save(path)
+    print("지도 저장:", path)
+    webbrowser.open("file://" + path.replace(os.sep, "/"))
+
+    print("그래프 창 3개가 차례로 뜹니다. 하나를 닫으면 다음 그래프가 표시됩니다.")
+    map_module.ShowGraph().show_nearest_station_graph(manager, KW_LAT, KW_LON)
+
+
+# ===========================================================================
 # 6. 외부 API (pages/external_api.py) — pyscript / 카카오 SDK mock
 # ===========================================================================
 class FakeProxy:
@@ -435,4 +524,10 @@ class ExternalApiTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main(verbosity=2)
+    result = unittest.main(verbosity=2, exit=False).result
+    if SHOW:
+        if result.wasSuccessful():
+            run_demo()
+        else:
+            print("\n테스트가 실패해서 --show 데모는 실행하지 않았습니다.")
+    sys.exit(not result.wasSuccessful())
