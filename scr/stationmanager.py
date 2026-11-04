@@ -1,7 +1,6 @@
 
 import csv
 import math
-import os
 
 
 # ==========================================================
@@ -31,11 +30,6 @@ class BusStop:
         self.node = node
         self.type = type
 
-    # 개발 가이드 명세(BusStop.id)와 시각화 코드(map.py)가 id로 접근하므로 별칭 제공
-    @property
-    def id(self):
-        return self.station_no
-
 
 
 # ==========================================================
@@ -52,13 +46,8 @@ class BusStop:
 
 
 class StationDataLoader:
-    # 실행 위치와 상관없이 data/busStop.csv를 찾도록 이 파일 기준 경로를 기본값으로 사용
-    DEFAULT_PATH = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "data", "busStop.csv"
-    )
-
-    def __init__(self, file_name=None):
-        self.file_name = file_name or self.DEFAULT_PATH
+    def __init__(self, file_name="busStop.csv"):
+        self.file_name = file_name
 
     def load_data(self):
         stations = []
@@ -72,15 +61,13 @@ class StationDataLoader:
                 if row["정류소번호"] == "sttn_no":
                     continue
 
-                # BusStop 인자 순서(경도, 위도)가 가이드 문서(위도, 경도)와 달라
-                # 위치 인자 대신 키워드 인자로 전달 (X좌표=경도, Y좌표=위도)
                 station = BusStop(
-                    station_no=row["정류소번호"],
-                    name=row["정류소명"],
-                    longitude=float(row["X좌표"]),
-                    latitude=float(row["Y좌표"]),
-                    node=row["노드_ID"],
-                    type=row["정류장_유형"]
+                    row["정류소번호"],
+                    row["정류소명"],
+                    float(row["X좌표"]),
+                    float(row["Y좌표"]),
+                    row["노드_ID"],
+                    row["정류장_유형"]
                 )
 
                 stations.append(station)
@@ -233,7 +220,7 @@ class StationManager:
 # - 외부에서 필요한 객체를 생성하고 연결 (의존성 주입)
 #
 # Input: CSV 파일, 사용자 위도 및 경도
-# Output: 가까운 정류장 목록 (count 개)
+# Output: 가까운 정류장 5개의 정보
 # ==========================================================
 
 if __name__ == "__main__":
@@ -254,16 +241,15 @@ if __name__ == "__main__":
     user_lat = 37.619774
     user_lon = 127.060926
 
-    # 5. 가장 가까운 정류장 검색
-    count = 10
+    # 5. 가장 가까운 정류장 5개 검색
     nearest = manager.find_nearest_stations(
         user_lat,
         user_lon,
-        count
+        10
     )
 
     # 6. 검색 결과 출력
-    print(f"\n가장 가까운 정류장 {count}개")
+    print("\n가장 가까운 정류장 5개")
 
     for i, (station, distance) in enumerate(nearest, start=1):
         print(
