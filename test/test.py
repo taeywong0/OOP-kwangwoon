@@ -47,6 +47,13 @@ def main():
     assert distances == sorted(distances), "거리 오름차순 정렬이 아닙니다."
     print("검증 통과")
 
+    # 경계 케이스 검증
+    assert manager.find_nearest_stations(USER_LAT, USER_LON, 0) == [], "count=0은 빈 리스트여야 합니다."
+    assert StationManager([], HaversineCalculator()).find_nearest_stations(USER_LAT, USER_LON) == []
+    empty_figs = ShowGraph().show_nearest_station_graph([])
+    assert len(empty_figs) == 3, "빈 결과도 그래프 3종을 반환해야 합니다."
+    print("경계 케이스 검증 통과")
+
     # 3. 텍스트 결과 저장
     lines = [f"불러온 정류장 수: {len(stations)}",
              f"\n가장 가까운 정류장 {COUNT}개"]

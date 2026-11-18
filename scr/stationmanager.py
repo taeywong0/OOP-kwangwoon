@@ -1,6 +1,9 @@
 
 import csv
+import heapq
 import math
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 
 # ==========================================================
@@ -21,15 +24,14 @@ import math
     # BusStop 객체
 
 
+@dataclass
 class BusStop:
-    def __init__(self, station_no, name, longitude, latitude, node, type):
-        self.station_no = station_no
-        self.name = name
-        self.longitude = longitude
-        self.latitude = latitude
-        self.node = node
-        self.type = type
-
+    station_no: str
+    name: str
+    longitude: float
+    latitude: float
+    node: str
+    type: str  # show.py가 station.type 속성을 사용하므로 이름 유지
 
 
 # ==========================================================
@@ -61,14 +63,18 @@ class StationDataLoader:
                 if row["정류소번호"] == "sttn_no":
                     continue
 
-                station = BusStop(
-                    row["정류소번호"],
-                    row["정류소명"],
-                    float(row["X좌표"]),
-                    float(row["Y좌표"]),
-                    row["노드_ID"],
-                    row["정류장_유형"]
-                )
+                # 좌표가 숫자가 아닌 행은 전체 중단 대신 건너뜀
+                try:
+                    station = BusStop(
+                        row["정류소번호"],
+                        row["정류소명"],
+                        float(row["X좌표"]),
+                        float(row["Y좌표"]),
+                        row["노드_ID"],
+                        row["정류장_유형"]
+                    )
+                except ValueError:
+                    continue
 
                 stations.append(station)
 
@@ -95,14 +101,13 @@ class StationDataLoader:
     # 두 위치 사이의 거리 (float, km)
 
 
-class DistanceCalculator:
+class DistanceCalculator(ABC):
 
     # Input: lat1, lon1, lat2, lon2 (float)
     # Output: 거리 (float, km)
+    @abstractmethod
     def calculate_distance(self, lat1, lon1, lat2, lon2):
-        raise NotImplementedError(
-            "자식 클래스에서 calculate_distance를 구현해야 합니다."
-        )
+        """자식 클래스에서 반드시 구현해야 합니다."""
 
 
 # ==========================================================
@@ -194,23 +199,17 @@ class StationManager:
         # (BusStop 객체, 거리 km) 튜플로 이루어진 리스트
         
     def find_nearest_stations(self, user_lat, user_lon, count=5):
-        result = []
+        if count <= 0:
+            return []
 
-        for station in self.stations:
+        with_distance = (
+            (station, self.calculator.calculate_distance(
+                user_lat, user_lon, station.latitude, station.longitude))
+            for station in self.stations
+        )
 
-            distance = self.calculator.calculate_distance(
-                user_lat,
-                user_lon,
-                station.latitude,
-                station.longitude
-            )
-
-            result.append((station, distance))
-
-        # 거리 기준 오름차순 정렬
-        result.sort(key=lambda x: x[1])
-
-        return result[:count]
+        # 거리 계산 후 가장 가까운 count개만 선택 (sort 보다 효율적 / 시간 복잡도 O(N + K \log N), 여기서 K는 전체 데이터 개수)
+        return heapq.nsmallest(count, with_distance, key=lambda x: x[1])
 
 
 # ==========================================================
@@ -249,7 +248,7 @@ if __name__ == "__main__":
     )
 
     # 6. 검색 결과 출력
-    print("\n가장 가까운 정류장 5개")
+    print(f"\n가장 가까운 정류장 {len(nearest)}개")
 
     for i, (station, distance) in enumerate(nearest, start=1):
         print(
