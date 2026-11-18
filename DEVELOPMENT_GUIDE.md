@@ -2,7 +2,7 @@
 본 문서는 BusFinder 프로그램의 원활한 개발과 충돌을 방지하기 위한 가이드 문서입니다.
 
 ## 개발 순서 (완료되면 체크해주세요)
-- [ ] 핵심 로직 및 데이터
+- [x] 핵심 로직 및 데이터
 - [x] 지도 시각화
 - [ ] 외부 API 연동
 - [ ] 웹 UX/UI 디자인
@@ -17,12 +17,12 @@ pages | html, css, js
 scr | py
 test | 테스트 파일 관리
 
-## 버스 데이터 명세
-    class BusStop:
-        def __init__(self, id, name, latitude, longitude, node, type):
-            self.id = id
-            self.name = name
-            self.latitude = latitude
-            self.longitude = longitude
-            self.node = node
-            self.type = type
+## 데이터 명세
+| 속성명 | 데이터 타입 | 설명 |
+| :--- | :--- | :--- |
+| `id` (정류소 ID) | `String` / `Int` | 각 정류소를 식별하는 고유 관리 번호 |
+| `name` (정류소명) | `String` | 버스 정류소의 공식 명칭 |
+| `latitude` (위도) | `Float` | 정류소의 WGS84 위도 좌표 ($\phi$) |
+| `longitude` (경도) | `Float` | 정류소의 WGS84 경도 좌표 ($\lambda$) |
+| `node` (노드 모바일 ID) | `String` / `Int` | 교통 네트워크 연계용 정류소 노드 식별자 |
+| `type` (정류소 유형) | `String` | 중앙차로, 가로변, 마을버스 정류소 등 설치 형태 |

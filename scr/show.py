@@ -2,6 +2,7 @@ import html
 import io
 import warnings
 from collections import Counter
+from pathlib import Path
 
 import folium
 from folium.plugins import MarkerCluster
@@ -24,12 +25,27 @@ from matplotlib.figure import Figure
 # ==========================================================
 
 
-# 한글 깨짐 방지: 설치된 폰트 중 처음 발견되는 한글 폰트를 사용 (Windows / macOS / Linux)
+# 한글 폰트 후보 이름 (Windows / macOS / Linux)
+_KOREAN_FONT_NAMES = ['Malgun Gothic', 'AppleGothic', 'NanumGothic',
+                      'Noto Sans CJK KR', 'Noto Sans KR']
+
+# matplotlib이 자동 탐색하지 못하는 폰트 파일 위치 (예: WSL에서 Windows 폰트 폴더)
+_KOREAN_FONT_FILES = [
+    '/mnt/c/Windows/Fonts/malgun.ttf',
+    '/mnt/c/Windows/Fonts/malgunbd.ttf',
+    '/usr/share/fonts/truetype/nanum/NanumGothic.ttf',
+    '/System/Library/Fonts/Supplemental/AppleGothic.ttf',
+]
+
+
+# 한글 깨짐 방지: 설치된 한글 폰트를 찾아 적용 (없으면 알려진 폰트 파일을 직접 등록)
 def _setup_korean_font():
-    candidates = ['Malgun Gothic', 'AppleGothic', 'NanumGothic',
-                  'Noto Sans CJK KR', 'Noto Sans KR']
+    for path in _KOREAN_FONT_FILES:
+        if Path(path).exists():
+            font_manager.fontManager.addfont(path)
+
     installed = {f.name for f in font_manager.fontManager.ttflist}
-    for name in candidates:
+    for name in _KOREAN_FONT_NAMES:
         if name in installed:
             rcParams['font.family'] = name
             break
@@ -46,6 +62,14 @@ def figure_to_png_bytes(fig, dpi=150):
     buffer = io.BytesIO()
     fig.savefig(buffer, format='png', dpi=dpi, bbox_inches='tight')
     return buffer.getvalue()
+
+
+# 결과가 없을 때 보여줄 빈 그래프
+def _empty_figure(message='표시할 정류장이 없습니다.'):
+    fig = Figure(figsize=(6, 3))
+    fig.add_subplot(111).axis('off')
+    fig.text(0.5, 0.5, message, ha='center', va='center')
+    return fig
 
 
 # 지도 시각화 클래스 (folium.Map 반환)
@@ -110,16 +134,20 @@ class ShowMap:
 
 # 그래프 시각화 클래스 (matplotlib Figure 반환)
 # 모든 메서드는 result = [(BusStop, 거리 km), ...] 를 전달받는다.
+# result는 거리 오름차순으로 정렬되어 있다고 가정한다 (StationManager가 보장).
 class ShowGraph:
 
     # 정류소 이름별 막대그래프 (가까울수록 막대가 길다, 가까운 정류장이 위쪽)
     #   막대 길이 = (가장 먼 거리 x 1.1) - 거리. 가장 먼 정류장도 막대가 보이도록 여유를 둔다.
     #   실제 거리(m)는 막대 끝에 숫자로 표시한다.
     def show_distance_by_station(self, result):
-        rows = sorted(result, key=lambda x: x[1])
+        if not result:
+            return _empty_figure()
+        rows = result  # 이미 거리 오름차순 (find_nearest_stations 반환값)
         names = [station.name for station, _ in rows]
         distances = [distance * 1000 for _, distance in rows]  # m
         lengths = [max(distances) * 1.1 - d for d in distances]
+        lengths = [max(length, 1e-9) for length in lengths]  # 거리 0일 때 막대 보존
 
         fig = Figure(figsize=(10, 6))
         ax = fig.add_subplot(111)
@@ -129,7 +157,7 @@ class ShowGraph:
         ax.invert_yaxis()  # 가장 가까운 정류장이 맨 위
         for i, (length, d) in enumerate(zip(lengths, distances)):
             ax.text(length, i, f' {d:.0f}m', va='center')
-        ax.set_xlim(0, max(lengths) * 1.15)
+        ax.set_xlim(0, (max(lengths) * 1.15) or 1)  # 거리가 모두 0이어도 범위 유지
         ax.set_xticks([])
         ax.set_xlabel('가까운 정도 (막대가 길수록 가까움)')
         ax.set_title('가까운 정류장 (거리 기준)')
@@ -138,7 +166,9 @@ class ShowGraph:
 
     # 이름 / 노드 / 거리 표 (가까운 정류장이 위쪽)
     def show_station_table(self, result):
-        rows = sorted(result, key=lambda x: x[1])
+        if not result:
+            return _empty_figure()
+        rows = result  # 이미 거리 오름차순 (find_nearest_stations 반환값)
         cells = [
             [station.name, station.node, f'{distance * 1000:.1f} m']
             for station, distance in rows
@@ -165,6 +195,8 @@ class ShowGraph:
 
     # 정류장 유형 원그래프 (유형별 정류장 개수)
     def show_graph_by_type(self, result):
+        if not result:
+            return _empty_figure()
         counts = Counter(station.type for station, _ in result)
         total = sum(counts.values())
 
